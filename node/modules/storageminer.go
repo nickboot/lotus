@@ -139,7 +139,7 @@ func StorageMiner(mctx helpers.MetricsCtx, lc fx.Lifecycle, api lapi.FullNode, h
 		return nil, err
 	}
 
-	fps, err := storage.NewWindowedPoStScheduler(api, sealer, sealer, maddr, worker)
+	fps, err := storage.NewWindowedPoStScheduler(api, sealer, maddr, worker)
 	if err != nil {
 		return nil, err
 	}

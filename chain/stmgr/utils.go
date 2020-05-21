@@ -248,24 +248,24 @@ func GetMinerDeadlines(ctx context.Context, sm *StateManager, ts *types.TipSet, 
 	return mas.LoadDeadlines(sm.cs.Store(ctx))
 }
 
-func GetMinerFaults(ctx context.Context, sm *StateManager, ts *types.TipSet, maddr address.Address) (*abi.BitField, error) {
+func GetMinerFaults(ctx context.Context, sm *StateManager, ts *types.TipSet, maddr address.Address) ([]abi.SectorNumber, error) {
 	var mas miner.State
 	_, err := sm.LoadActorState(ctx, maddr, &mas, ts)
 	if err != nil {
-		return nil, xerrors.Errorf("(get faults) failed to load miner actor state: %w", err)
+		return nil, xerrors.Errorf("(get ssize) failed to load miner actor state: %w", err)
 	}
 
-	return mas.Faults, nil
-}
-
-func GetMinerRecoveries(ctx context.Context, sm *StateManager, ts *types.TipSet, maddr address.Address) (*abi.BitField, error) {
-	var mas miner.State
-	_, err := sm.LoadActorState(ctx, maddr, &mas, ts)
+	faults, err := mas.Faults.All(miner.SectorsMax)
 	if err != nil {
-		return nil, xerrors.Errorf("(get recoveries) failed to load miner actor state: %w", err)
+		return nil, xerrors.Errorf("reading fault bit set: %w", err)
 	}
 
-	return mas.Recoveries, nil
+	out := make([]abi.SectorNumber, len(faults))
+	for i, fault := range faults {
+		out[i] = abi.SectorNumber(fault)
+	}
+
+	return out, nil
 }
 
 func GetStorageDeal(ctx context.Context, sm *StateManager, dealId abi.DealID, ts *types.TipSet) (*api.MarketDeal, error) {
